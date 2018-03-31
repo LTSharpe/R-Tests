@@ -29,7 +29,7 @@ remDr <- rD[["client"]]
 remDr$navigate(url)
 
 wait_time <- 4L
-error_msg_not_clickable <- "unknown error: Element .* is not clickable at point"
+error_msg_not_clickable <- "unknown error: Element.* is not clickable at point"
 error_msg_overload <- "unexpected alert open"
 error_msg_finish <- "element not visible"
 

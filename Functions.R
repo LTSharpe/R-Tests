@@ -31,6 +31,8 @@ pressButton <- function(button, browser_client, css_id){
       } else {
         if (grepl(error_msg_not_clickable, error_message)) {
           print("Couldn't click button, finding new position and trying again")
+          # we're too fast, increment wait time to slow down
+          wait_time <- wait_time + 1L
           pressButton(findButton(browser_client, css_id), browser_client, css_id)
         } else {
           if(grepl(error_msg_finish, error_message)){
