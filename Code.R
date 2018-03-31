@@ -19,9 +19,23 @@ cat_id <- 54726 # mobile phones
 url <- paste0(parent_url, category_url, cat_id)
 
 # load web-page
-webpage <- read_html(url)
+# start RSelenium
+rD <- rsDriver()
+remDr <- rD[["client"]]
+
+# navigate to page
+remDr$navigate(url)
+
+# get page html
+page_source <- read_html(remDr$getPageSource()[[1]])
+
+# close RSelenium
+remDr$close()
+rD[["server"]]$stop()
+rm(rD)
+
 # main nodes with product details
-nodes <- html_nodes(webpage, ".n-snippet-cell2")
+nodes <- html_nodes(page_source, ".n-snippet-cell2")
 
 # load data from web-page
 Data <- data.table(
