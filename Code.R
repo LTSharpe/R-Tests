@@ -6,6 +6,8 @@ library(magrittr)
 
 rm(list = ls())
 
+source("Functions.R")
+
 # parent url
 parent_url <- "https://market.yandex.ru/"
 
@@ -26,27 +28,20 @@ remDr <- rD[["client"]]
 # navigate to page
 remDr$navigate(url)
 
-# press button to load more results until all are loaded
-chk <- FALSE
-page_number <- 0L
+wait_time <- 4L
+error_msg_not_clickable <- "unknown error: Element .* is not clickable at point"
+error_msg_overload <- "unexpected alert open"
+error_msg_finish <- "element not visible"
 
-while(!chk){
-  # try to find button to load more results
-  button <- tryCatch(
-    remDr$findElement(using = 'css selector', ".pager-more__button"),
-    error = function(e){}
-  )
+# press button to load more results until all are loaded
+chk <- NULL
+page_number <- 0L
+while(is.null(chk)){
+  chk <- pressButton(findButton(remDr, ".pager-more__button"), remDr, ".pager-more__button")
   
-  if(length(button) > 0L) {
-  # press button if it's on page and wait for results to load
-    button$clickElement()
-    page_number <- page_number + 1L
-    print(paste0("Loading page #", page_number))
-    Sys.sleep(7L)
-  } else {
-  # if no more button on page exit loop
-    chk <- TRUE
-  }
+  page_number <- page_number + 1L
+  print(paste0("Loading page #", page_number))
+  Sys.sleep(wait_time)
 }
 
 # get page html
@@ -56,7 +51,7 @@ page_html <- read_html(page_source)
 # close RSelenium & clean not needed objects from memory
 remDr$close()
 rD[["server"]]$stop()
-rm(rD, remDr, button, chk, page_number, page_source)
+rm(rD, remDr, chk, page_number, page_source, error_msg_finish, error_msg_not_clickable, error_msg_overload, wait_time)
 
 # main nodes with product details
 nodes <- html_nodes(page_html, ".n-snippet-cell2")
