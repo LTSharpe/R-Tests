@@ -2,6 +2,7 @@
 findButton <- function(browser_client, css_id){
   button <- tryCatch(
     browser_client$findElement("css selector", css_id),
+    warning = function(w){print(w)},
     error = function(e){
       error_message <- browser_client$errorDetails()$message
       if(grepl(error_msg_overload, error_message)){
@@ -21,7 +22,15 @@ findButton <- function(browser_client, css_id){
 # function that presses the button
 pressButton <- function(button, browser_client, css_id){
   tryCatch(
-    button$clickElement(),
+    {
+      if(button$isElementDisplayed()[[1]]){
+        button$clickElement()
+      } else {
+        return(FALSE)
+      }
+    }
+    ,
+    warning = function(w){print(w)},
     error = function(e){
       error_message <- button$errorDetails()$message
       if(grepl(error_msg_overload, error_message)){
@@ -37,7 +46,7 @@ pressButton <- function(button, browser_client, css_id){
         } else {
           if(grepl(error_msg_finish, error_message)){
             print("Everything loaded")
-            return(TRUE)
+            return(FALSE)
           } else {
             print(e)
           }

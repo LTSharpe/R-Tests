@@ -21,28 +21,39 @@ cat_id <- 54726 # mobile phones
 url <- paste0(parent_url, category_url, cat_id)
 
 # load web-page
-# start RSelenium
-rD <- rsDriver()
-remDr <- rD[["client"]]
+# connect to RSelenium (running on docker)
+#rD <- RSelenium::rsDriver(browser = "firefox") # open browser
+#remDr <- rD[["client"]] # connect to client
+
+# connect to Firefox on docker
+remDr <- remoteDriver(
+  port = 4444L,
+  browserName = "firefox",
+  extraCapabilities = 
+    makeFirefoxProfile(list(
+      permissions.default.image = 2L,
+      browser.migration.version = 9999L)
+      )
+  )
+remDr$open() # open connection
 
 # navigate to page
 remDr$navigate(url)
 
-wait_time <- 4L
+wait_time <- 0L
 error_msg_not_clickable <- "unknown error: Element.* is not clickable at point"
 error_msg_overload <- "unexpected alert open"
 error_msg_finish <- "element not visible"
 
 # press button to load more results until all are loaded
 chk <- NULL
-page_number <- 0L
 while(is.null(chk)){
   chk <- pressButton(findButton(remDr, ".pager-more__button"), remDr, ".pager-more__button")
   
-  page_number <- page_number + 1L
-  print(paste0("Loading page #", page_number))
   Sys.sleep(wait_time)
 }
+
+remDr$screenshot(display = TRUE)
 
 # get page html
 page_source <- remDr$getPageSource()[[1]]
@@ -50,8 +61,8 @@ page_html <- read_html(page_source)
 
 # close RSelenium & clean not needed objects from memory
 remDr$close()
-rD[["server"]]$stop()
-rm(rD, remDr, chk, page_number, page_source, error_msg_finish, error_msg_not_clickable, error_msg_overload, wait_time)
+#rD[["server"]]$stop() # if using rsDriver()
+rm(remDr, chk, page_source, error_msg_finish, error_msg_not_clickable, error_msg_overload, wait_time)
 
 # main nodes with product details
 nodes <- html_nodes(page_html, ".n-snippet-cell2")
